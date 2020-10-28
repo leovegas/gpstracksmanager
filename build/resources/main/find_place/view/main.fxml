@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2017 Esri.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License"); you may not
+  ~ use this file except in compliance with the License. You may obtain a copy of
+  ~ the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+  ~ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+  ~ License for the specific language governing permissions and limitations under
+  ~ the License.
+  -->
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import com.esri.arcgisruntime.mapping.view.MapView?>
+<?import javafx.collections.FXCollections?>
+<?import java.lang.String?>
+<?import javafx.scene.layout.Background?>
+<?import javafx.scene.layout.BackgroundFill?>
+<?import javafx.scene.paint.Color?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.control.ToggleButton?>
+<StackPane fx:controller="com.mycompany.app.FindPlaceController"
+
+           xmlns:fx="http://javafx.com/fxml" stylesheets="/find_place/style.css">
+    <MapView fx:id="mapView"/>
+    <VBox StackPane.alignment="TOP_LEFT" spacing="5" maxWidth="250" maxHeight="50" styleClass="panel-region">
+        <padding>
+            <Insets topRightBottomLeft="10"/>
+        </padding>
+        <background>
+            <Background>
+                <fills>
+                    <BackgroundFill>
+                        <fill>
+                            <Color opacity="0.3"/>
+                        </fill>
+                    </BackgroundFill>
+                </fills>
+            </Background>
+        </background>
+        <StackPane.margin><Insets left="10" top="10"/></StackPane.margin>
+<!--        <ComboBox fx:id="placeBox" promptText="Find a place" editable="true" maxWidth="Infinity" visible="false">-->
+<!--            <items>-->
+<!--                <FXCollections fx:factory="observableArrayList">-->
+<!--                    <String fx:value="Starbucks"/>-->
+<!--                    <String fx:value="Coffee"/>-->
+<!--                    <String fx:value="Bank"/>-->
+<!--                    <String fx:value="Gas station"/>-->
+<!--                    <String fx:value="Empire State Building"/>-->
+<!--                </FXCollections>-->
+<!--            </items>-->
+<!--        </ComboBox>-->
+        <ComboBox fx:id="locationBox" promptText="Place..." editable="true" maxWidth="Infinity">
+            <items>
+                <FXCollections fx:factory="observableArrayList">
+                    <String fx:value="Los Angeles, CA"/>
+                    <String fx:value="New York City, New York"/>
+                    <String fx:value="Malmköping"/>
+                    <String fx:value="Stockholm"/>
+                </FXCollections>
+            </items>
+        </ComboBox>
+        <Button text="Search" onAction="#search" maxWidth="Infinity"/>
+    </VBox>
+    <VBox StackPane.alignment="BOTTOM_LEFT" spacing="5" maxWidth="250" maxHeight="50" styleClass="panel-region">
+        <padding>
+            <Insets topRightBottomLeft="10"/>
+        </padding>
+        <background>
+            <Background>
+                <fills>
+                    <BackgroundFill>
+                        <fill>
+                            <Color opacity="0.3"/>
+                        </fill>
+                    </BackgroundFill>
+                </fills>
+            </Background>
+        </background>
+        <StackPane.margin><Insets left="10" top="10"/></StackPane.margin>
+        <ChoiceBox fx:id="cb" items="${controller.choiceBoxItems}" maxWidth="Infinity">
+            <background>
+                <Background>
+                    <fills>
+                        <BackgroundFill>
+                            <fill>
+                                <Color opacity="0.5"/>
+                            </fill>
+                        </BackgroundFill>
+                    </fills>
+                </Background>
+            </background>
+        </ChoiceBox>
+        <Button fx:id="goToButton" text="Go to field" onAction="#goToField" maxWidth="Infinity"/>
+    </VBox>
+    <VBox StackPane.alignment="TOP_CENTER" spacing="5" maxWidth="250" maxHeight="50" styleClass="panel-region">
+        <padding>
+            <Insets topRightBottomLeft="10"/>
+        </padding>
+        <background>
+            <Background>
+                <fills>
+                    <BackgroundFill>
+                        <fill>
+                            <Color opacity="0.3"/>
+                        </fill>
+                    </BackgroundFill>
+                </fills>
+            </Background>
+        </background>
+        <TextField fx:id="textArea"
+                   StackPane.alignment="TOP_CENTER" maxWidth="350" maxHeight="10">
+            <StackPane.margin><Insets bottom="15"/></StackPane.margin>
+        </TextField>
+        <TextField fx:id="textDistance"
+                   StackPane.alignment="TOP_CENTER" maxWidth="350" maxHeight="10">
+            <StackPane.margin><Insets bottom="15"/></StackPane.margin>
+        </TextField>
+        <StackPane.margin><Insets left="10" top="10"/></StackPane.margin>
+    </VBox>
+    <VBox StackPane.alignment="BOTTOM_CENTER" spacing="5" maxWidth="250" maxHeight="50" styleClass="panel-region">
+        <padding>
+            <Insets topRightBottomLeft="10"/>
+        </padding>
+        <background>
+            <Background>
+                <fills>
+                    <BackgroundFill>
+                        <fill>
+                            <Color opacity="0.3"/>
+                        </fill>
+                    </BackgroundFill>
+                </fills>
+            </Background>
+        </background>
+        <TextField fx:id="longLat"
+                   StackPane.alignment="TOP_CENTER" maxWidth="350" maxHeight="10">
+            <StackPane.margin><Insets bottom="15"/></StackPane.margin>
+        </TextField>
+        <TextField fx:id="resultHeading"
+                   StackPane.alignment="TOP_CENTER" maxWidth="350" maxHeight="10">
+            <StackPane.margin><Insets bottom="15"/></StackPane.margin>
+        </TextField>
+        <StackPane.margin><Insets left="10" top="10"/></StackPane.margin>
+    </VBox>
+    <VBox StackPane.alignment="BOTTOM_RIGHT" spacing="5" maxWidth="250" maxHeight="50" styleClass="panel-region">
+        <padding>
+            <Insets topRightBottomLeft="10"/>
+        </padding>
+        <background>
+            <Background>
+                <fills>
+                    <BackgroundFill>
+                        <fill>
+                            <Color opacity="0.3"/>
+                        </fill>
+                    </BackgroundFill>
+                </fills>
+            </Background>
+        </background>
+        <FlowPane>
+            <Slider fx:id="slider" snapToTicks="true" majorTickUnit="4"
+                    min="4" max="72" blockIncrement="4" value="36"
+                    StackPane.alignment="TOP_CENTER" maxWidth="350" maxHeight="10">
+                <StackPane.margin><Insets bottom="15"/></StackPane.margin>
+            </Slider>
+            <TextField fx:id="sliderValueText" text="${slider.value}"
+                       StackPane.alignment="TOP_CENTER" maxWidth="80" maxHeight="10">
+                <StackPane.margin><Insets bottom="15"/></StackPane.margin>
+            </TextField>
+        </FlowPane>
+        <FlowPane>
+            <Slider fx:id="slider2" snapToTicks="true" majorTickUnit="4"
+                    min="4" max="72" blockIncrement="4" value="8"
+                    StackPane.alignment="TOP_CENTER" maxWidth="350" maxHeight="10">
+                <StackPane.margin><Insets bottom="15"/></StackPane.margin>
+            </Slider>
+            <TextField fx:id="slider2ValueText" text="${slider2.value}"
+                       StackPane.alignment="TOP_CENTER" maxWidth="80" maxHeight="10">
+                <StackPane.margin><Insets bottom="15"/></StackPane.margin>
+            </TextField>
+        </FlowPane>
+
+
+        <StackPane.margin><Insets left="10" top="10"/></StackPane.margin>
+    </VBox>
+<!--    <Button fx:id="redoButton" text="Redo search in this area" onAction="#searchByCurrentViewpoint" disable="true"-->
+<!--            StackPane.alignment="BOTTOM_RIGHT" maxWidth="260">-->
+<!--        <StackPane.margin><Insets bottom="15"/></StackPane.margin>-->
+<!--    </Button>-->
+<!--    <Button fx:id="clearButton" text="Clear all" onAction="#clearAll"-->
+<!--            StackPane.alignment="TOP_RIGHT" maxWidth="120">-->
+<!--        <StackPane.margin><Insets top="100"/></StackPane.margin>-->
+<!--    </Button>-->
+<!--    <Button fx:id="testButton" text="Test" onAction="#createModePolygon"-->
+<!--            StackPane.alignment="TOP_RIGHT" maxWidth="120">-->
+<!--        <StackPane.margin><Insets top="350"/></StackPane.margin>-->
+<!--    </Button>-->
+<!--    <Button fx:id="testButton2" text="Test2" onAction="#testMethod2"-->
+<!--            StackPane.alignment="TOP_RIGHT" maxWidth="120">-->
+<!--        <StackPane.margin><Insets top="125"/></StackPane.margin>-->
+<!--    </Button>-->
+    <ToggleButton fx:id="makePolygonButton" onAction="#addPolygonGraphic2" style="-fx-background-color: white" opacity="0.5"
+            StackPane.alignment="TOP_RIGHT" maxWidth="40">
+        <StackPane.margin><Insets top="20" right="10"/></StackPane.margin>
+        <graphic>
+            <ImageView fitHeight="25.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true">
+                <image>
+                    <Image fx:id="imageCreatePolygon" url="file:/media/leonid/d1c9906b-7e4d-4be5-a677-60293515247f/leonid/java-gradle-starter-project-master/src/main/resources/find_place/iconfinder_188_FormPolygonBorder_183306.png"
+                    backgroundLoading="true"/>
+                </image>
+            </ImageView>
+        </graphic>
+    </ToggleButton>
+
+    <ToggleButton fx:id="cutOffButton" onAction="#cutOffToggle" style="-fx-background-color: white" opacity="0.5"
+            StackPane.alignment="TOP_RIGHT" maxWidth="40">
+        <StackPane.margin><Insets top="70" right="10"/></StackPane.margin>
+        <graphic>
+            <ImageView fitHeight="25.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true">
+                <image>
+                    <Image url="file:/media/leonid/d1c9906b-7e4d-4be5-a677-60293515247f/leonid/java-gradle-starter-project-master/src/main/resources/find_place/iconfinder_miscellaneous-47_809447.png"
+                           backgroundLoading="true"/>
+                </image>
+            </ImageView>
+        </graphic>
+    </ToggleButton>
+
+    <Button fx:id="undoButton" onAction="#undoMethod" style="-fx-background-color: white" opacity="0.5"
+            StackPane.alignment="TOP_RIGHT" maxWidth="40">
+        <StackPane.margin><Insets top="120" right="10"/></StackPane.margin>
+        <graphic>
+            <ImageView fitHeight="25.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true">
+                <image>
+                    <Image url="file:/media/leonid/d1c9906b-7e4d-4be5-a677-60293515247f/leonid/java-gradle-starter-project-master/src/main/resources/find_place/iconfinder_icon-ios7-undo_211838.png"
+                           backgroundLoading="true"/>
+                </image>
+            </ImageView>
+        </graphic>
+    </Button>
+
+    <Button fx:id="clearButton" onAction="#clearAll" style="-fx-background-color: white" opacity="0.5"
+            StackPane.alignment="TOP_RIGHT" maxWidth="40">
+        <StackPane.margin><Insets top="170" right="10"/></StackPane.margin>
+        <graphic>
+            <ImageView fitHeight="25.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true">
+                <image>
+                    <Image url="file:/media/leonid/d1c9906b-7e4d-4be5-a677-60293515247f/leonid/java-gradle-starter-project-master/src/main/resources/find_place/iconfinder_ic_clear_48px_3669378.png"
+                           backgroundLoading="true"/>
+                </image>
+            </ImageView>
+        </graphic>
+    </Button>
+
+    <Button fx:id="actionsButton" onAction="#showStage" style="-fx-background-color: white" opacity="0.5"
+            StackPane.alignment="TOP_RIGHT" minHeight="35" maxWidth="40">
+        <StackPane.margin><Insets top="220" right="10"/></StackPane.margin>
+        <graphic>
+            <ImageView fitHeight="30.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                <image>
+                    <Image url="file:/media/leonid/d1c9906b-7e4d-4be5-a677-60293515247f/leonid/java-gradle-starter-project-master/src/main/resources/find_place/iconfinder_backup_326537.png"
+                           backgroundLoading="true"/>
+                </image>
+            </ImageView>
+        </graphic>
+    </Button>
+
+    <ToggleButton fx:id="addTracksButton" onAction="#addTracks" style="-fx-background-color: white" opacity="0.5"
+            StackPane.alignment="TOP_RIGHT" maxWidth="40">
+        <StackPane.margin><Insets top="270" right="10"/></StackPane.margin>
+        <graphic>
+            <ImageView fitHeight="25.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true">
+                <image>
+                    <Image url="file:/media/leonid/d1c9906b-7e4d-4be5-a677-60293515247f/leonid/java-gradle-starter-project-master/src/main/resources/find_place/iconfinder_Streamline-38_185058.png"
+                           backgroundLoading="true"/>
+                </image>
+            </ImageView>
+        </graphic>
+    </ToggleButton>
+<!--    <Button fx:id="makePolygonButton" text="Build polygon"-->
+<!--            StackPane.alignment="TOP_RIGHT" maxWidth="120">-->
+<!--        <StackPane.margin><Insets top="25"/></StackPane.margin>-->
+<!--    </Button>-->
+
+<!--    <Button fx:id="cutOffButton" text="Cut off" onAction="#cutOff"-->
+<!--            StackPane.alignment="TOP_RIGHT" maxWidth="120">-->
+<!--        <StackPane.margin><Insets top="75"/></StackPane.margin>-->
+<!--    </Button>-->
+<!--    <Button fx:id="actionsButton" text="Actions" onAction="#showStage"-->
+<!--            StackPane.alignment="TOP_RIGHT" maxWidth="120">-->
+<!--        <StackPane.margin><Insets top="250"/></StackPane.margin>-->
+<!--    </Button>-->
+<!--    <Button fx:id="addTracksButton" text="Add tracks"-->
+<!--            StackPane.alignment="TOP_RIGHT" maxWidth="120">-->
+<!--        <StackPane.margin><Insets top="300"/></StackPane.margin>-->
+<!--    </Button>-->
+
+</StackPane>

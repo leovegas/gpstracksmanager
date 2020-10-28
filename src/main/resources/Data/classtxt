@@ -1,0 +1,332 @@
+/**
+ * Copyright 2019 Esri
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy
+ * of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
+ */
+
+package com.mycompany.app;
+
+import com.esri.arcgisruntime.geometry.*;
+import com.esri.arcgisruntime.mapping.view.Callout;
+import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
+import javafx.geometry.Pos;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.input.MouseButton;
+import javafx.scene.layout.StackPane;
+import javafx.stage.Stage;
+
+import com.esri.arcgisruntime.mapping.ArcGISMap;
+import com.esri.arcgisruntime.mapping.Basemap;
+import com.esri.arcgisruntime.mapping.view.MapView;
+
+import com.esri.arcgisruntime.data.ServiceFeatureTable;
+import com.esri.arcgisruntime.layers.FeatureLayer;
+import com.esri.arcgisruntime.loadable.LoadStatus;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+
+import com.esri.arcgisruntime.data.ServiceFeatureTable;
+import com.esri.arcgisruntime.layers.FeatureLayer;
+import com.esri.arcgisruntime.symbology.ClassBreaksRenderer;
+import com.esri.arcgisruntime.symbology.ClassBreaksRenderer.ClassBreak;
+import com.esri.arcgisruntime.symbology.PictureMarkerSymbol;
+import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
+import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
+import com.esri.arcgisruntime.symbology.SimpleRenderer;
+import com.esri.arcgisruntime.symbology.UniqueValueRenderer;
+import com.esri.arcgisruntime.symbology.UniqueValueRenderer.UniqueValue;
+
+import com.esri.arcgisruntime.mapping.view.Graphic;
+import com.esri.arcgisruntime.mapping.view.GraphicsOverlay;
+import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
+import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
+import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol;
+import com.esri.arcgisruntime.mapping.Viewpoint;
+import javafx.util.Duration;
+
+
+public class App extends Application {
+
+    private MapView mapView;
+    private static FindPlaceController controller;
+
+    private int hexRed = 0xFFFF0000;
+    private int hexBlue = 0xFF00FF00;
+    private int hexGreen = 0xFF0000FF;
+
+    private double pointX;
+    private double pointY;
+
+    TextArea textField = new TextArea();
+
+    PointCollection polylinePoints = new PointCollection(SpatialReferences.getWgs84());
+    PointCollection polylinePointsTemp = new PointCollection(SpatialReferences.getWgs84());
+    PointCollection polygonPoints = new PointCollection(SpatialReferences.getWgs84());
+    PolylineBuilder polylineBuilder = new PolylineBuilder(SpatialReferences.getWgs84());
+
+    private GraphicsOverlay graphicsOverlay;
+
+    public static void main(String[] args) {
+        Application.launch(args);
+    }
+
+    private void setupGraphicsOverlay() {
+        if (mapView != null) {
+            graphicsOverlay = new GraphicsOverlay();
+            mapView.getGraphicsOverlays().add(graphicsOverlay);
+        }
+    }
+
+    private FeatureLayer addFeatureLayer(String uri) {
+
+        ServiceFeatureTable serviceFeatureTable = new ServiceFeatureTable(uri);
+        FeatureLayer featureLayer = new FeatureLayer(serviceFeatureTable);
+        ArcGISMap map = mapView.getMap();
+        map.getOperationalLayers().add(featureLayer);
+
+        return featureLayer;
+    }
+
+    private void addPointGraphic(Point point) {
+
+        if (graphicsOverlay != null) {
+            SimpleMarkerSymbol pointSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, hexRed, 10.0f);
+            pointSymbol.setOutline(new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, hexBlue, 2.0f));
+            //Point point = new Point(x, y, SpatialReferences.getWgs84());
+            Graphic pointGraphic = new Graphic(point, pointSymbol);
+            graphicsOverlay.getGraphics().add(pointGraphic);
+        }
+    }
+
+    private void addPolylineTemp(Point point) {
+        if (graphicsOverlay != null) {
+//            polylinePoints.add(new Point(-118.29026, 34.1816));
+//            polylinePoints.add(new Point(-118.26451, 34.09664));
+
+            String latLonToDouble = CoordinateFormatter.toLatitudeLongitude(point, CoordinateFormatter
+                    .LatitudeLongitudeFormat.DECIMAL_DEGREES, 4);
+
+            double pX = Double.parseDouble(latLonToDouble.substring(9, 17));
+            double pY = Double.parseDouble(latLonToDouble.substring(0, 7));
+
+            if (latLonToDouble.substring(7, 8).equals("S")) {
+                pY = pY * (-1);
+            }
+            if (latLonToDouble.substring(17, 18).equals("W")) {
+                pX = pX * (-1);
+            }
+
+
+
+            polylinePointsTemp.add(new Point(pX, pY));
+
+            if (polylinePointsTemp.size() == 2) {
+
+                LineSegment lineSegment =
+                        new LineSegment(polylinePointsTemp.get(0), polylinePointsTemp.get(1));
+
+                Part firstPart = new Part(SpatialReferences.getWgs84());
+                firstPart.add(lineSegment);
+                polylineBuilder.addPart(firstPart);
+
+                SimpleLineSymbol polygonSymbol = new SimpleLineSymbol(SimpleLineSymbol.Style.DASH, hexGreen, 1.0f);
+                Graphic graphic = new Graphic(polylineBuilder.toGeometry(), polygonSymbol);
+
+//                Polyline polyline = new Polyline(polylinePointsTemp);
+//                SimpleLineSymbol polylineSymbol = new SimpleLineSymbol(SimpleLineSymbol.Style.DASH, hexBlue, 1.0f);
+//                Graphic polylineGraphic = new Graphic(polyline, polylineSymbol);
+                graphicsOverlay.getGraphics().add(graphic);
+                Point temp = polylinePointsTemp.get(1);
+                polylinePointsTemp.clear();
+                polylinePointsTemp.add(temp);
+            }
+        }
+    }
+
+    private void addPolylineGraphic(Point point) {
+        if (graphicsOverlay != null) {
+//            polylinePoints.add(new Point(-118.29026, 34.1816));
+//            polylinePoints.add(new Point(-118.26451, 34.09664));
+
+            String latLonToDouble = CoordinateFormatter.toLatitudeLongitude(point, CoordinateFormatter
+                    .LatitudeLongitudeFormat.DECIMAL_DEGREES, 4);
+
+            double pX = Double.parseDouble(latLonToDouble.substring(9, 17));
+            double pY = Double.parseDouble(latLonToDouble.substring(0, 7));
+
+            if (latLonToDouble.substring(7, 8).equals("S")) {
+                pY = pY * (-1);
+            }
+            if (latLonToDouble.substring(17, 18).equals("W")) {
+                pX = pX * (-1);
+            }
+
+            polylinePoints.add(new Point(pX, pY));
+
+            if (polylinePoints.size() == 2) {
+                Polyline polyline = new Polyline(polylinePoints);
+                SimpleLineSymbol polylineSymbol = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, hexBlue, 5.0f);
+                Graphic polylineGraphic = new Graphic(polyline, polylineSymbol);
+                graphicsOverlay.getGraphics().add(polylineGraphic);
+                polylinePoints.clear();
+            }
+        }
+    }
+
+
+    private void addPolygonGraphic(Point point) {
+        if (graphicsOverlay != null) {
+
+            String latLonToDouble = CoordinateFormatter.toLatitudeLongitude(point, CoordinateFormatter
+                    .LatitudeLongitudeFormat.DECIMAL_DEGREES, 4);
+
+            double pX = Double.parseDouble(latLonToDouble.substring(9, 17));
+            double pY = Double.parseDouble(latLonToDouble.substring(0, 7));
+
+            if (latLonToDouble.substring(7, 8).equals("S")) {
+                pY = pY * (-1);
+            }
+            if (latLonToDouble.substring(17, 18).equals("W")) {
+                pX = pX * (-1);
+            }
+
+            polygonPoints.add(new Point(pX, pY));
+
+            if (polygonPoints.size()>=3) {
+
+                mapView.setOnKeyPressed(e -> {
+                   if (e.getCode().getName().equals("Enter")) {
+                       polygonPoints.add(polygonPoints.get(0));
+                       Polygon polygon = new Polygon(polygonPoints);
+                       SimpleFillSymbol polygonSymbol = new SimpleFillSymbol(SimpleFillSymbol.Style.NULL, hexGreen,
+                               new SimpleLineSymbol(SimpleLineSymbol.Style.DOT, hexBlue, 2.0f));
+                       Graphic polygonGraphic = new Graphic(polygon, polygonSymbol);
+                       graphicsOverlay.getGraphics().add(polygonGraphic);
+
+                       polylineBuilder.getParts().clear();
+
+                       if (polygonPoints.size()>=3) {
+                           graphicsOverlay.getGraphics().removeIf(e2 -> e2.getGeometry().getGeometryType().name().equals("POLYLINE"));
+                           graphicsOverlay.getGraphics().removeIf(e3 -> e3.getGeometry().getGeometryType().name().equals("POINT"));
+                           polylinePointsTemp.clear();
+                           polygonPoints.clear();
+
+                           double area = GeometryEngine.areaGeodetic(polygon, new AreaUnit(AreaUnitId.HECTARES), GeodeticCurveType.GEODESIC);
+                           System.out.println(area+" ha");
+                           textField.setText(String.valueOf(area)+" ha");
+                       }
+                   }
+                });
+            }
+        }
+    }
+
+    private void showCalloutWithLocationCoordinates(Point location) {
+        Callout callout = mapView.getCallout();
+        callout.setTitle("Location:");
+        String latLonDecimalDegrees = CoordinateFormatter.toLatitudeLongitude(location, CoordinateFormatter
+                .LatitudeLongitudeFormat.DECIMAL_DEGREES, 4);
+        String latLonDegMinSec = CoordinateFormatter.toLatitudeLongitude(location, CoordinateFormatter
+                .LatitudeLongitudeFormat.DEGREES_MINUTES_SECONDS, 1);
+        String utm = CoordinateFormatter.toUtm(location, CoordinateFormatter.UtmConversionMode.LATITUDE_BAND_INDICATORS,
+                true);
+        String usng = CoordinateFormatter.toUsng(location, 4, true);
+        callout.setDetail(
+                "Decimal Degrees: " + latLonDecimalDegrees + "\n" +
+                        "Degrees, Minutes, Seconds: " + latLonDegMinSec + "\n" +
+                        "UTM: " + utm + "\n" +
+                        "USNG: " + usng + "\n"
+        );
+        mapView.getCallout().showCalloutAt(location, new Duration(500));
+    }
+
+
+    @Override
+    public void start(Stage stage) throws IOException {
+
+        // set the title and size of the stage and show it
+        stage.setTitle("My Map App");
+        stage.setWidth(800);
+        stage.setHeight(700);
+        stage.show();
+
+        // create a JavaFX scene with a stack pane as the root node and add it to the scene
+        StackPane stackPane = new StackPane();
+
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/find_place/main.fxml"));
+        Parent root = loader.load();
+        controller = loader.getController();
+        Scene scene = new Scene(root);
+
+       // Scene scene = new Scene(stackPane);
+        stage.setScene(scene);
+
+        // create a MapView to display the map and add it to the stack pane
+        mapView = new MapView();
+        Button generateButton = new Button("Clear all");
+        generateButton.setOnMouseClicked(event -> {
+            graphicsOverlay.getGraphics().removeIf(Objects::nonNull);
+        });
+        stackPane.getChildren().addAll(mapView, generateButton, textField);
+        StackPane.setAlignment(generateButton, Pos.TOP_LEFT);
+        StackPane.setMargin(generateButton, new Insets(10, 0, 0, 10));
+        textField.setMaxSize(500,8);
+        StackPane.setAlignment(textField, Pos.BOTTOM_CENTER);
+        StackPane.setMargin(textField, new Insets(10, 10, 0, 0));
+
+        // create an ArcGISMap with the default imagery basemap
+        ArcGISMap map = new ArcGISMap(Basemap.createImageryWithLabels());
+
+        // display the map by setting the map on the map view
+        mapView.setMap(map);
+
+        setupGraphicsOverlay();
+
+        mapView.setOnMouseClicked(e -> {
+            // check that the primary mouse button was clicked and user is not panning
+            if (e.isStillSincePress() && e.getButton() == MouseButton.PRIMARY) {
+                // get the map point where the user clicked
+                pointX = e.getX();
+                pointY = e.getY();
+                Point2D point = new Point2D(e.getX(), e.getY());
+                Point mapPoint = mapView.screenToLocation(point);
+                // show the callout at the point with the different coordinate format strings
+                addPointGraphic(mapPoint);
+                addPolylineTemp(mapPoint);
+                addPolygonGraphic(mapPoint);
+            }
+        });
+    }
+
+    /**
+     * Stops and releases all resources used in application.
+     */
+    @Override
+    public void stop() {
+
+        if (mapView != null) {
+            mapView.dispose();
+        }
+    }
+}
